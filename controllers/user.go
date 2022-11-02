@@ -22,12 +22,15 @@ var userCollection *mongo.Collection = configs.GetCollection(configs.DB, "users"
 var validate = validator.New()
 
 func Signup(c echo.Context) (err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	const seconds time.Duration = 10 // seconds
+	ctx, cancel := context.WithTimeout(context.Background(), seconds*time.Second)
+
 	var user models.User
+
 	defer cancel()
 
 	// Validate the request body
-	if err := c.Bind(&user); err != nil {
+	if err = c.Bind(&user); err != nil {
 		return c.JSON(
 			http.StatusBadRequest,
 			responses.Error{Status: "error", Message: "Bad request", Data: err.Error()},
@@ -48,7 +51,7 @@ func Signup(c echo.Context) (err error) {
 
 	// Hash the password
 	hashed := helpers.HashAndSalt(user.Password)
-	user.Password = string(hashed)
+	user.Password = hashed
 
 	newUser := models.User{
 		ID:       primitive.NewObjectID(),
@@ -62,7 +65,9 @@ func Signup(c echo.Context) (err error) {
 		merr := err.(mongo.WriteException)
 		log.Errorf("Number of errors: %d", len(merr.WriteErrors))
 		errCode := merr.WriteErrors[0].Code
-		if errCode == 11000 {
+
+		const duplicateKeyErrorCode = 11000
+		if errCode == duplicateKeyErrorCode {
 			return c.JSON(
 				http.StatusBadRequest,
 				responses.Error{
@@ -83,6 +88,7 @@ func Signup(c echo.Context) (err error) {
 	}
 
 	newUser.Password = "" // Remove password from response
+
 	return c.JSON(
 		http.StatusCreated,
 		responses.Success{
@@ -94,12 +100,10 @@ func Signup(c echo.Context) (err error) {
 }
 
 func Signin(c echo.Context) (err error) {
-	// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	// defer cancel()
 	var user models.User
 
 	// Validate the request body
-	if err := c.Bind(&user); err != nil {
+	if err = c.Bind(&user); err != nil {
 		return c.JSON(
 			http.StatusBadRequest,
 			responses.Error{Status: "error", Message: "Bad request", Data: err.Error()},
@@ -119,8 +123,13 @@ func Signin(c echo.Context) (err error) {
 	}
 
 	var result bson.M
-	err = userCollection.FindOne(context.TODO(), bson.D{{Key: "email", Value: user.Email}}).
-		Decode(&result)
+	err = userCollection.FindOne(context.TODO(),
+		bson.D{{
+			Key:   "email",
+			Value: user.Email,
+		}},
+	).Decode(&result)
+
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			// This error means your query did not match any documents.
@@ -162,7 +171,9 @@ func Signin(c echo.Context) (err error) {
 	// Set claims
 	claims := token.Claims.(jwt.MapClaims)
 	claims["id"] = result["id"]
-	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+
+	const hours time.Duration = 72 // hours
+	claims["exp"] = time.Now().Add(time.Hour * hours).Unix()
 
 	// Generate encoded token and send it as response
 	user.Token, err = token.SignedString([]byte(Key))
@@ -170,23 +181,8 @@ func Signin(c echo.Context) (err error) {
 		return err
 	}
 
-	// // Update the token
-	// filter := bson.M{"_id": result["id"]}
-	// update := bson.M{"$set": bson.M{"token": token}}
-	// _, err = userCollection.UpdateOne(ctx, filter, update)
-	// if err != nil {
-	// 	return c.JSON(
-	// 		http.StatusInternalServerError,
-	// 		responses.Error{
-	// 			Status:  "error",
-	// 			Message: "Internal server error",
-	// 			Data:    err.Error(),
-	// 		},
-	// 	)
-	// }
-
 	return c.JSON(
-		http.StatusOK,
+		http.StatusCreated,
 		responses.Success{
 			Status:  "success",
 			Message: "User logged in successfully",
@@ -195,45 +191,34 @@ func Signin(c echo.Context) (err error) {
 	)
 }
 
-// func (h *Handler) Login(c echo.Context) (err error) {
-// 	// Bind
-// 	u := new(models.User)
-// 	if err = c.Bind(u); err != nil {
-// 		return
-// 	}
+func Follow(c echo.Context) (err error) {
+	userID := userIDFromToken(c)
+	id := c.Param("id")
 
-// 	// Find user
-// 	db := h.DB.Clone()
-// 	defer db.Close()
-// 	if err = db.DB("twitter").C("users").
-// 		Find(bson.M{"email": u.Email, "password": u.Password}).One(u); err != nil {
-// 		if err == mgo.ErrNotFound {
-// 			return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid email or password"}
-// 		}
-// 		return
-// 	}
+	// Add a follower to user
+	filter := bson.D{{Key: "_id", Value: id}}
+	update := bson.D{{Key: "$addToSet", Value: bson.M{"followers": userID}}}
+	result, err := userCollection.UpdateOne(context.TODO(), filter, update)
 
-// 	//-----
-// 	// JWT
-// 	//-----
+	if err != nil {
+		return c.JSON(
+			http.StatusNotFound,
+			responses.Error{
+				Status:  "error",
+				Message: "ID not found",
+			},
+		)
+	}
 
-// 	// Create token
-// 	token := jwt.New(jwt.SigningMethodHS256)
-
-// 	// Set claims
-// 	claims := token.Claims.(jwt.MapClaims)
-// 	claims["id"] = u.ID
-// 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-// 	// Generate encoded token and send it as response
-// 	u.Token, err = token.SignedString([]byte(Key))
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	u.Password = "" // Don't send password
-// 	return c.JSON(http.StatusOK, u)
-// }
+	return c.JSON(
+		http.StatusOK,
+		responses.Success{
+			Status:  "success",
+			Message: "Followed successfully",
+			Data:    result,
+		},
+	)
+}
 
 // func (h *Handler) Follow(c echo.Context) (err error) {
 // 	userID := userIDFromToken(c)
@@ -252,8 +237,9 @@ func Signin(c echo.Context) (err error) {
 // 	return
 // }
 
-// func userIDFromToken(c echo.Context) string {
-// 	user := c.Get("user").(*jwt.Token)
-// 	claims := user.Claims.(jwt.MapClaims)
-// 	return claims["id"].(string)
-// }
+func userIDFromToken(c echo.Context) string {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+
+	return claims["id"].(string)
+}

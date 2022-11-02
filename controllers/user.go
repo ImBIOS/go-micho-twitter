@@ -1,14 +1,12 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/ImBIOS/go-micho-twitter/configs"
 	"github.com/ImBIOS/go-micho-twitter/helpers"
 	"github.com/ImBIOS/go-micho-twitter/models"
-	"github.com/ImBIOS/go-micho-twitter/models/responses"
-	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
@@ -17,9 +15,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/net/context"
 )
-
-var userCollection *mongo.Collection = configs.GetCollection(configs.DB, "users")
-var validate = validator.New()
 
 func Signup(c echo.Context) (err error) {
 	const seconds time.Duration = 10 // seconds
@@ -33,7 +28,7 @@ func Signup(c echo.Context) (err error) {
 	if err = c.Bind(&user); err != nil {
 		return c.JSON(
 			http.StatusBadRequest,
-			responses.Error{Status: "error", Message: "Bad request", Data: err.Error()},
+			models.Response{Status: "error", Message: "Bad request", Data: err.Error()},
 		)
 	}
 
@@ -41,7 +36,7 @@ func Signup(c echo.Context) (err error) {
 	if validationErr := validate.Struct(&user); validationErr != nil {
 		return c.JSON(
 			http.StatusBadRequest,
-			responses.Error{
+			models.Response{
 				Status:  "error",
 				Message: "Validation error",
 				Data:    validationErr.Error(),
@@ -70,7 +65,7 @@ func Signup(c echo.Context) (err error) {
 		if errCode == duplicateKeyErrorCode {
 			return c.JSON(
 				http.StatusBadRequest,
-				responses.Error{
+				models.Response{
 					Status:  "error",
 					Message: "Email already exists",
 				},
@@ -79,7 +74,7 @@ func Signup(c echo.Context) (err error) {
 
 		return c.JSON(
 			http.StatusInternalServerError,
-			responses.Error{
+			models.Response{
 				Status:  "error",
 				Message: "Internal server error",
 				Data:    err.Error(),
@@ -91,7 +86,7 @@ func Signup(c echo.Context) (err error) {
 
 	return c.JSON(
 		http.StatusCreated,
-		responses.Success{
+		models.Response{
 			Status:  "success",
 			Message: "User created successfully",
 			Data:    newUser,
@@ -106,7 +101,7 @@ func Signin(c echo.Context) (err error) {
 	if err = c.Bind(&user); err != nil {
 		return c.JSON(
 			http.StatusBadRequest,
-			responses.Error{Status: "error", Message: "Bad request", Data: err.Error()},
+			models.Response{Status: "error", Message: "Bad request", Data: err.Error()},
 		)
 	}
 
@@ -114,7 +109,7 @@ func Signin(c echo.Context) (err error) {
 	if validationErr := validate.Struct(&user); validationErr != nil {
 		return c.JSON(
 			http.StatusBadRequest,
-			responses.Error{
+			models.Response{
 				Status:  "error",
 				Message: "Validation error",
 				Data:    validationErr.Error(),
@@ -135,7 +130,7 @@ func Signin(c echo.Context) (err error) {
 			// This error means your query did not match any documents.
 			return c.JSON(
 				http.StatusInternalServerError,
-				responses.Error{
+				models.Response{
 					Status:  "error",
 					Message: "Email or password is incorrect",
 				},
@@ -148,7 +143,7 @@ func Signin(c echo.Context) (err error) {
 	if !isPasswordCorrect {
 		return c.JSON(
 			http.StatusUnauthorized,
-			responses.Error{
+			models.Response{
 				Status:  "error",
 				Message: "Email or password is incorrect",
 			},
@@ -170,7 +165,7 @@ func Signin(c echo.Context) (err error) {
 
 	// Set claims
 	claims := token.Claims.(jwt.MapClaims)
-	claims["id"] = result["id"]
+	claims["id"] = user.ID.Hex() // Convert ObjectID to string
 
 	const hours time.Duration = 72 // hours
 	claims["exp"] = time.Now().Add(time.Hour * hours).Unix()
@@ -183,7 +178,7 @@ func Signin(c echo.Context) (err error) {
 
 	return c.JSON(
 		http.StatusCreated,
-		responses.Success{
+		models.Response{
 			Status:  "success",
 			Message: "User logged in successfully",
 			Data:    user,
@@ -193,17 +188,28 @@ func Signin(c echo.Context) (err error) {
 
 func Follow(c echo.Context) (err error) {
 	userID := userIDFromToken(c)
-	id := c.Param("id")
+	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+
+	if err != nil {
+		return c.JSON(
+			http.StatusNotFound,
+			models.Response{
+				Status:  "error",
+				Message: "Invalid ID",
+			},
+		)
+	}
 
 	// Add a follower to user
 	filter := bson.D{{Key: "_id", Value: id}}
 	update := bson.D{{Key: "$addToSet", Value: bson.M{"followers": userID}}}
 	result, err := userCollection.UpdateOne(context.TODO(), filter, update)
+	fmt.Println(result)
 
 	if err != nil {
 		return c.JSON(
 			http.StatusNotFound,
-			responses.Error{
+			models.Response{
 				Status:  "error",
 				Message: "ID not found",
 			},
@@ -212,30 +218,12 @@ func Follow(c echo.Context) (err error) {
 
 	return c.JSON(
 		http.StatusOK,
-		responses.Success{
+		models.Response{
 			Status:  "success",
 			Message: "Followed successfully",
-			Data:    result,
 		},
 	)
 }
-
-// func (h *Handler) Follow(c echo.Context) (err error) {
-// 	userID := userIDFromToken(c)
-// 	id := c.Param("id")
-
-// 	// Add a follower to user
-// 	db := h.DB.Clone()
-// 	defer db.Close()
-// 	if err = db.DB("twitter").C("users").
-// 		UpdateId(bson.ObjectIdHex(id), bson.M{"$addToSet": bson.M{"followers": userID}}); err != nil {
-// 		if err == mgo.ErrNotFound {
-// 			return echo.ErrNotFound
-// 		}
-// 	}
-
-// 	return
-// }
 
 func userIDFromToken(c echo.Context) string {
 	user := c.Get("user").(*jwt.Token)

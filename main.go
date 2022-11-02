@@ -31,13 +31,6 @@ func main() {
 	// Routes
 	routes.UserRoute(e)
 
-	// // Routes
-	// e.POST("/signup", h.Signup)
-	// e.POST("/login", h.Login)
-	// e.POST("/follow/:id", h.Follow)
-	// e.POST("/tweet", h.CreateTweet)
-	// e.GET("/feed", h.FetchTweet)
-
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))
 }

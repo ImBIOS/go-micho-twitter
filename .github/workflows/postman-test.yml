@@ -1,0 +1,16 @@
+name: Postman Test
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  newman:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: matt-ball/newman-action@master
+        with:
+          collection: tests/go_twitter.postman_collection.json
+          environment: tests/go_twitter.postman_environment.json

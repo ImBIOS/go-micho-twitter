@@ -17,8 +17,8 @@ func ConnectDB() *mongo.Client {
 		log.Fatal(err)
 	}
 
-	const seconds time.Duration = 10 // seconds
-	ctx, cancel := context.WithTimeout(context.Background(), seconds*time.Second)
+	const timeout time.Duration = 10 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 
 	defer cancel()
 

@@ -1,4 +1,6 @@
 linters-settings:
+  errcheck:
+    check-type-assertions: true
   goconst:
     min-len: 2
     min-occurrences: 3
@@ -25,6 +27,7 @@ linters:
     - depguard
     - dogsled
     - dupl
+    - errcheck
     - exportloopref
     - exhaustive
     - goconst

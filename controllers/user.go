@@ -1,3 +1,4 @@
+//nolint:errcheck // False positive
 package controllers
 
 import (
@@ -16,15 +17,15 @@ import (
 	"golang.org/x/net/context"
 )
 
-func Signup(c echo.Context) (err error) {
-	const seconds time.Duration = 10 // seconds
-	ctx, cancel := context.WithTimeout(context.Background(), seconds*time.Second)
+func AddUser(c echo.Context) (err error) {
+	const timeout time.Duration = 10 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 
 	var user models.User
 
 	defer cancel()
 
-	// Validate the request body
+	// Validate the request body type
 	if err = c.Bind(&user); err != nil {
 		return c.JSON(
 			http.StatusBadRequest,
@@ -94,7 +95,7 @@ func Signup(c echo.Context) (err error) {
 	)
 }
 
-func Signin(c echo.Context) (err error) {
+func Authenticate(c echo.Context) (err error) {
 	var user models.User
 
 	// Validate the request body
@@ -167,8 +168,8 @@ func Signin(c echo.Context) (err error) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["id"] = user.ID.Hex() // Convert ObjectID to string
 
-	const hours time.Duration = 72 // hours
-	claims["exp"] = time.Now().Add(time.Hour * hours).Unix()
+	const duration time.Duration = 72 * time.Hour
+	claims["exp"] = time.Now().Add(duration).Unix()
 
 	// Generate encoded token and send it as response
 	user.Token, err = token.SignedString([]byte(Key))
@@ -186,7 +187,7 @@ func Signin(c echo.Context) (err error) {
 	)
 }
 
-func Follow(c echo.Context) (err error) {
+func AddFollowing(c echo.Context) (err error) {
 	userID := userIDFromToken(c)
 	id, err := primitive.ObjectIDFromHex(c.Param("id"))
 

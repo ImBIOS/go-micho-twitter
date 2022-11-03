@@ -1,31 +1,116 @@
 package controllers
 
-// func (h *Handler) CreatePost(c echo.Context) (err error) {
-// 	u := &models.User{
-// 		ID: bson.ObjectIdHex(userIDFromToken(c)),
-// 	}
-// 	p := &models.Post{
-// 		ID:   bson.NewObjectId(),
-// 		From: u.ID.Hex(),
-// 	}
-// 	if err = c.Bind(p); err != nil {
-// 		return
-// 	}
+import (
+	"net/http"
+	"time"
 
-// 	// Validation
-// 	if p.To == "" || p.Message == "" {
-// 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "invalid to or message fields"}
-// 	}
+	"github.com/ImBIOS/go-micho-twitter/models"
+	"github.com/labstack/echo/v4"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/net/context"
+)
 
-// 	// Find user from database
-// 	db := h.DB.Clone()
-// 	defer db.Close()
-// 	if err = db.DB("twitter").C("users").FindId(u.ID).One(u); err != nil {
-// 		if err == mgo.ErrNotFound {
-// 			return echo.ErrNotFound
-// 		}
-// 		return
-// 	}
+func AddTweet(c echo.Context) (err error) {
+	const timeout time.Duration = 10 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	userID := userIDFromToken(c)
+
+	var tweet models.Tweet
+
+	defer cancel()
+
+	// Validate the request body type
+	if err = c.Bind(&tweet); err != nil {
+		return c.JSON(
+			http.StatusBadRequest,
+			models.Response{Status: "error", Message: "Bad request", Data: err.Error()},
+		)
+	}
+
+	// Use the validator library to validate required fields
+	if validationErr := validate.Struct(&tweet); validationErr != nil {
+		return c.JSON(
+			http.StatusBadRequest,
+			models.Response{
+				Status:  "error",
+				Message: "Validation error",
+				Data:    validationErr.Error(),
+			},
+		)
+	}
+
+	newTweet := models.Tweet{
+		ID:          primitive.NewObjectID(),
+		From:        userID,
+		FullText:    tweet.FullText,
+		CreatedTime: primitive.Timestamp{T: uint32(time.Now().Unix())},
+	}
+
+	// Save tweet in database
+	_, err = tweetCollection.InsertOne(ctx, newTweet)
+	if err != nil {
+		return c.JSON(
+			http.StatusInternalServerError,
+			models.Response{
+				Status:  "error",
+				Message: "Internal server error",
+				Data:    err.Error(),
+			},
+		)
+	}
+
+	return c.JSON(
+		http.StatusCreated,
+		models.Response{
+			Status:  "success",
+			Message: "Tweet created successfully",
+			Data:    newTweet,
+		},
+	)
+}
+
+func GetFeed(c echo.Context) (err error) {
+	const timeout time.Duration = 10 * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	userID := userIDFromToken(c)
+
+	defer cancel()
+
+	// Get feed from database
+	cursor, err := tweetCollection.Find(ctx, bson.M{"from": userID})
+	if err != nil {
+		return c.JSON(
+			http.StatusInternalServerError,
+			models.Response{
+				Status:  "error",
+				Message: "Internal server error",
+				Data:    err.Error(),
+			},
+		)
+	}
+
+	var tweets []models.Tweet
+	if err = cursor.All(ctx, &tweets); err != nil {
+		return c.JSON(
+			http.StatusInternalServerError,
+			models.Response{
+				Status:  "error",
+				Message: "Internal server error",
+				Data:    err.Error(),
+			},
+		)
+	}
+
+	return c.JSON(
+		http.StatusOK,
+		models.Response{
+			Status:  "success",
+			Message: "Tweets retrieved successfully",
+			Data:    tweets,
+		},
+	)
+}
 
 // 	// Save post in database
 // 	if err = db.DB("twitter").C("posts").Insert(p); err != nil {

@@ -10,9 +10,27 @@ Twitter-like API with Go, using [Echo](https://github.com/labstack/echo) and [Go
 - [ ] Follow System
   - [x] Follow
   - [ ] Unfollow
-- [ ] Public Tweet
-  - [ ] Send Tweet
-  - [ ] View Followed Tweet
+- [x] Public Tweet
+  - [x] Send Tweet
+  - [x] Feed
+- [ ] Private Message
+  - [ ] Send Message
+  - [ ] View Private Message
+- [ ] User Profile
+  - [ ] View Profile
+  - [ ] Edit Profile
+- [ ] Search
+- [ ] Security
+  - [ ] JWT
+    - [x] Access Token
+    - [ ] Refresh Token
+  - [ ] Rate Limiting
+  - [ ] CORS
+- [ ] DevOps
+  - [ ] Docker
+  - [ ] Kubernetes
+  - [x] Continuous Integration
+  - [ ] Containerized Development
 
 ## Tools ⚒️
 

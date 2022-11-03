@@ -29,7 +29,7 @@ func main() {
 	configs.ConnectDB()
 
 	// Routes
-	routes.UserRoute(e)
+	routes.APIRoute(e)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))

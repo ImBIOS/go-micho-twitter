@@ -10,7 +10,7 @@ import (
 func EnvMongoURI() string {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("Error loading .env file")
 	}
 
 	return os.Getenv("MONGOURI")
@@ -19,7 +19,7 @@ func EnvMongoURI() string {
 func EnvSecret() string {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("Error loading .env file")
 	}
 
 	return os.Getenv("SECRET_KEY")

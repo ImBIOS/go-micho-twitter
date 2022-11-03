@@ -23,6 +23,9 @@ go.work
 # Environment files
 .env
 
+# Build files
+build
+
 # Temprorary files
 tmp
 

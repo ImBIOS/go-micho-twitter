@@ -18,6 +18,7 @@ func main() {
 
 	// Middleware
 	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
 		SigningKey: []byte(controllers.Key),
 		Skipper: func(c echo.Context) bool {

@@ -6,6 +6,7 @@ import (
 )
 
 func APIRoute(e *echo.Echo) {
+	// g := e.Group("/api")
 	// User routes
 	e.POST("/signup", controllers.AddUser)
 	e.POST("/signin", controllers.Authenticate)

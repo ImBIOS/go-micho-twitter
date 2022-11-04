@@ -9,8 +9,8 @@ on:
   pull_request:
     branches:
       - master
-permissions:
-  contents: read # needed for the golangci-lint
+# permissions:
+#   contents: read # needed for the golangci-lint
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:

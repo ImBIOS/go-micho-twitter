@@ -9,8 +9,8 @@ on:
   pull_request:
     branches:
       - master
-# permissions:
-#   contents: read # needed for the golangci-lint
+permissions:
+  contents: read # needed for the golangci-lint
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -25,46 +25,46 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Git checkout
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
 
-      # - name: Start MongoDB ${{ matrix.mongodb-version }}
-      #   uses: supercharge/mongodb-github-action@1.8.0
-      #   with:
-      #     mongodb-version: ${{ matrix.mongodb-version }}
-      #     mongodb-username: root
-      #     mongodb-password: secret
-      #     mongodb-db: twitter
+      - name: Start MongoDB ${{ matrix.mongodb-version }}
+        uses: supercharge/mongodb-github-action@1.8.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
+          mongodb-username: root
+          mongodb-password: secret
+          mongodb-db: twitter
 
-      # - name: Set up Go ${{ matrix.go-version }}
-      #   uses: actions/setup-go@v3
-      #   with:
-      #     go-version: ${{ matrix.go-version }}
+      - name: Set up Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
 
-      # - name: golangci-lint ${{ matrix.golangci-lint-version }}
-      #   uses: golangci/golangci-lint-action@v3
-      #   with:
-      #     version: ${{ matrix.golangci-lint-version }}
+      - name: golangci-lint ${{ matrix.golangci-lint-version }}
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: ${{ matrix.golangci-lint-version }}
 
-      # - name: Install Go dependencies
-      #   run: go get .
+      - name: Install Go dependencies
+        run: go get .
 
-      # - name: Build
-      #   run: go build -o ./build/main .
+      - name: Build
+        run: go build -o ./build/main .
 
       # API Tests
-      # - name: Run API Server
-      #   run: |
-      #     cd ./build && ./main &
-      #     sleep 5
-      #   env:
-      #     MONGOURI: mongodb://root:secret@localhost:27017/
-      #     SECRET_KEY: abc&1*~#^2^#s0^=)^^7%b15
+      - name: Run API Server
+        run: |
+          cd ./build && ./main &
+          sleep 5
+        env:
+          MONGOURI: mongodb://root:secret@localhost:27017/
+          SECRET_KEY: abc&1*~#^2^#s0^=)^^7%b17
 
-      # - name: Run Postman's tests
-      #   uses: matt-ball/newman-action@master
-      #   with:
-      #     collection: tests/go_twitter.postman_collection.json
-      #     environment: tests/go_twitter.postman_environment.json
+      - name: Run Postman's tests
+        uses: matt-ball/newman-action@master
+        with:
+          collection: tests/go_twitter.postman_collection.json
+          environment: tests/go_twitter.postman_environment.json
 
-      # - name: Kill API Server
-      #   run: killall main
+      - name: Kill API Server
+        run: killall main

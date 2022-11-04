@@ -27,29 +27,29 @@ jobs:
       - name: Git checkout
       - uses: actions/checkout@v3
 
-      - name: Start MongoDB ${{ matrix.mongodb-version }}
-        uses: supercharge/mongodb-github-action@1.8.0
-        with:
-          mongodb-version: ${{ matrix.mongodb-version }}
-          mongodb-username: root
-          mongodb-password: secret
-          mongodb-db: twitter
+      # - name: Start MongoDB ${{ matrix.mongodb-version }}
+      #   uses: supercharge/mongodb-github-action@1.8.0
+      #   with:
+      #     mongodb-version: ${{ matrix.mongodb-version }}
+      #     mongodb-username: root
+      #     mongodb-password: secret
+      #     mongodb-db: twitter
 
-      - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{ matrix.go-version }}
+      # - name: Set up Go ${{ matrix.go-version }}
+      #   uses: actions/setup-go@v3
+      #   with:
+      #     go-version: ${{ matrix.go-version }}
 
-      - name: golangci-lint ${{ matrix.golangci-lint-version }}
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: ${{ matrix.golangci-lint-version }}
+      # - name: golangci-lint ${{ matrix.golangci-lint-version }}
+      #   uses: golangci/golangci-lint-action@v3
+      #   with:
+      #     version: ${{ matrix.golangci-lint-version }}
 
-      - name: Install Go dependencies
-        run: go get .
+      # - name: Install Go dependencies
+      #   run: go get .
 
-      - name: Build
-        run: go build -o ./build/main .
+      # - name: Build
+      #   run: go build -o ./build/main .
 
       # API Tests
       # - name: Run API Server

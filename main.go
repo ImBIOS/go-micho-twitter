@@ -10,8 +10,13 @@ import (
 )
 
 func main() {
+	// Init Echo
 	e := echo.New()
+
+	// Set log level to error
 	e.Logger.SetLevel(log.ERROR)
+
+	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
 		SigningKey: []byte(controllers.Key),

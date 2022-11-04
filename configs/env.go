@@ -13,7 +13,7 @@ func EnvMongoURI() string {
 		log.Println("Error loading .env file")
 	}
 
-	if os.Getenv("MONGO_URI") == "" {
+	if os.Getenv("MONGOURI") == "" {
 		log.Fatal("MONGO_URI is not set")
 	}
 

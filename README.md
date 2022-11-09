@@ -31,6 +31,12 @@ Twitter-like API with Go, using [Echo](https://github.com/labstack/echo) and [Go
   - [ ] Kubernetes
   - [x] Continuous Integration
   - [ ] Containerized Development
+- [x] Echo Framework for API
+  - [x] Authentication
+  - [x] Middleware
+  - [x] Routing
+  - [x] Validation
+- [ ] Go-Micro Framework for Microservices
 
 ## Tools ⚒️
 

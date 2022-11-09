@@ -64,7 +64,7 @@ jobs:
         uses: matt-ball/newman-action@master
         with:
           collection: tests/go_twitter.postman_collection.json
-          environment: tests/go_twitter.postman_environment.json
+          environment: tests/go_twitter.postman_github_environment.json
 
       - name: Kill API Server
         run: killall main

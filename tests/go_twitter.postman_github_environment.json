@@ -1,0 +1,93 @@
+{
+  "id": "316f948d-748d-425d-9573-a8923d2901a1",
+  "name": "Go Twitter API Test",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://172.17.0.1:1323",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "newUsername",
+      "value": "testing",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "newPassword",
+      "value": "testingpassword123",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "badUserPayloads",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "currentBadUserPayload",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "currentBadAuthPayload",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "id",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "badTweetPayload",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "currentBadTweetPayload",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "badTweetPayloads",
+      "value": "",
+      "type": "any",
+      "enabled": true
+    },
+    {
+      "key": "tweetText",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2022-11-03T09:17:46.513Z",
+  "_postman_exported_using": "Postman/10.0.42"
+}

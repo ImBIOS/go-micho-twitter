@@ -25,7 +25,7 @@ Twitter-like API with Go, using [Echo](https://github.com/labstack/echo) and [Go
     - [x] Access Token
     - [ ] Refresh Token
   - [ ] Rate Limiting
-  - [ ] CORS
+  - [x] CORS
 - [ ] DevOps
   - [ ] Docker
   - [ ] Kubernetes

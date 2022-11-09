@@ -16,6 +16,9 @@ func main() {
 	// Set log level to error
 	e.Logger.SetLevel(log.ERROR)
 
+	// CORS
+	e.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
+
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
